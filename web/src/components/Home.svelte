@@ -76,7 +76,9 @@
         class="rounded-xl bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
         role="status"
       >
-        {tracker.offline ? "Can't reach your server. " : ''}{tracker.unsynced
+        {tracker.offline
+          ? "Can't reach your server. If you reach it over a VPN like Tailscale, check that it's on. "
+          : ''}{tracker.unsynced
           ? `${tracker.unsynced} ${tracker.unsynced === 1 ? 'day' : 'days'} saved on this phone, sent when you're back online.`
           : 'Showing what is saved on this phone.'}
       </p>
