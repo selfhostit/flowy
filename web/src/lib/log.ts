@@ -113,8 +113,11 @@ export function exportCsv(logs: Iterable<DayLog>): string {
     'notes',
   ] as const;
   const cell = (v: unknown) => {
+    // symptoms of your own can have spaces in them, so they're kept apart with semicolons
     const s = Array.isArray(v)
-      ? v.map((x: string | CustomSymptom) => (typeof x === 'string' ? x : x.label)).join(' ')
+      ? v
+          .map((x: string | CustomSymptom) => (typeof x === 'string' ? x : x.label))
+          .join(v.some((x) => typeof x !== 'string') ? '; ' : ' ')
       : v === false || v === 0 || v == null
         ? ''
         : String(v);
