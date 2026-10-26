@@ -34,6 +34,9 @@ class Tracker {
       [...this.logs.values()].filter((l) => isBleeding(l.flow)).map((l) => toDay(l.date)),
       this.settings,
       this.now,
+      [...this.logs.values()]
+        .filter((l) => l.temperature)
+        .map((l) => ({ day: toDay(l.date), celsius: l.temperature })),
     ),
   );
 

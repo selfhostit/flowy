@@ -70,19 +70,11 @@ func isoDate(d cycle.Day) string {
 
 func partnerSummary(app core.App, user *core.Record, showLog bool, now cycle.Day) (partnerView, error) {
 	view := partnerView{Name: user.GetString("name"), Today: isoDate(now)}
-	days, err := app.FindRecordsByFilter("days",
-		"user = {:user} && (flow = 'light' || flow = 'medium' || flow = 'heavy')", "", 0, 0,
-		dbx.Params{"user": user.Id})
+	bleeding, temps, err := loggedCycle(app, user, now)
 	if err != nil {
 		return view, err
 	}
-	var bleeding []cycle.Day
-	for _, d := range days {
-		if day, err := cycle.Parse(d.GetString("date")); err == nil && day <= now {
-			bleeding = append(bleeding, day)
-		}
-	}
-	if f, ok := cycle.Predict(bleeding, settingsOf(user), now); ok {
+	if f, ok := cycle.Predict(bleeding, temps, settingsOf(user), now); ok {
 		view.Logged = true
 		view.CycleDay = int(now-f.LastStart) + 1
 		view.Phase = f.Phase(now)

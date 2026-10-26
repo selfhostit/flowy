@@ -53,19 +53,11 @@ func sendReminders(app core.App, now cycle.Day) error {
 		return err
 	}
 	for _, u := range users {
-		days, err := app.FindRecordsByFilter("days",
-			"user = {:user} && (flow = 'light' || flow = 'medium' || flow = 'heavy')", "", 0, 0,
-			dbx.Params{"user": u.Id})
+		bleeding, temps, err := loggedCycle(app, u, now)
 		if err != nil {
 			return err
 		}
-		var bleeding []cycle.Day
-		for _, d := range days {
-			if day, err := cycle.Parse(d.GetString("date")); err == nil {
-				bleeding = append(bleeding, day)
-			}
-		}
-		f, ok := cycle.Predict(bleeding, settingsOf(u), now)
+		f, ok := cycle.Predict(bleeding, temps, settingsOf(u), now)
 		if !ok {
 			continue
 		}
@@ -74,6 +66,30 @@ func sendReminders(app core.App, now cycle.Day) error {
 		}
 	}
 	return nil
+}
+
+// loggedCycle is what the cycle math needs from someone's days up to now: the
+// days with bleeding and the temperatures.
+func loggedCycle(app core.App, u *core.Record, now cycle.Day) (bleeding []cycle.Day, temps []cycle.Temp, err error) {
+	days, err := app.FindRecordsByFilter("days",
+		"user = {:user} && (flow = 'light' || flow = 'medium' || flow = 'heavy' || temperature > 0)", "", 0, 0,
+		dbx.Params{"user": u.Id})
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, d := range days {
+		day, err := cycle.Parse(d.GetString("date"))
+		if err != nil || day > now {
+			continue
+		}
+		if f := d.GetString("flow"); f == "light" || f == "medium" || f == "heavy" {
+			bleeding = append(bleeding, day)
+		}
+		if t := d.GetFloat("temperature"); t > 0 {
+			temps = append(temps, cycle.Temp{Day: day, Celsius: t})
+		}
+	}
+	return bleeding, temps, nil
 }
 
 func settingsOf(u *core.Record) cycle.Settings {
