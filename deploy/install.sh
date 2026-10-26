@@ -14,7 +14,7 @@ app=flowy
 repo=${FLOWY_REPO:-selfhostit/flowy}
 source=${FLOWY_SOURCE:-https://raw.githubusercontent.com/$repo/main/deploy}
 dir=${1:-${FLOWY_DIR:-$HOME/$app}}
-files="docker-compose.yml docker-compose.tailscale.yml .env.example"
+files="docker-compose.yml docker-compose.tailscale.yml tailscale-serve.json .env.example"
 
 say() { printf '\033[1m%s\033[0m\n' "$*"; }
 die() { printf 'Error: %s\n' "$*" >&2; exit 1; }

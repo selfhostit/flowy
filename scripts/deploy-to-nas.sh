@@ -23,7 +23,7 @@ docker build --platform "$platform" --build-arg VERSION="$(git describe --tags -
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 docker save "$image" | gzip >"$tmp/flowy-image.tar.gz"
-cp deploy/docker-compose.yml deploy/docker-compose.tailscale.yml deploy/.env.example "$tmp/"
+cp deploy/docker-compose.yml deploy/docker-compose.tailscale.yml deploy/tailscale-serve.json deploy/.env.example "$tmp/"
 
 echo "Copying to $target:$dir"
 tar -C "$tmp" -cf - . | ssh "$target" "mkdir -p $dir/pb_data && tar -C $dir -xf -"
