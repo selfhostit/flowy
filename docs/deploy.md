@@ -25,8 +25,9 @@ curl -fsSL https://raw.githubusercontent.com/selfhostit/flowy/main/deploy/instal
 ```
 
 This creates `~/flowy` with the compose files, a `.env` and a `pb_data` folder
-for the database, asks for a Tailscale auth key (press Enter to skip), and starts
-the app. Pass a folder to install elsewhere: `... | sh -s /srv/flowy`.
+for the database, asks for a Tailscale auth key (press Enter to skip, or set an
+empty `TS_AUTHKEY=` to skip the question), and starts the app. Pass a folder to
+install elsewhere: `... | sh -s /srv/flowy`.
 
 Then open the app and create your account; the first person becomes the owner.
 Without Tailscale it is only reachable on the machine itself, at
