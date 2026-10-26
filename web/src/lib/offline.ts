@@ -51,6 +51,11 @@ export class DeviceCopy {
     this.storage.removeItem(logsKey(this.user));
     this.storage.removeItem(pendingKey(this.user));
   }
+
+  /** Removes the copy of the logs but keeps the changes not sent yet. */
+  forgetSynced() {
+    this.storage.removeItem(logsKey(this.user));
+  }
 }
 
 /** The fields of a day log that are synced. */
