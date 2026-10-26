@@ -1,7 +1,9 @@
 <script lang="ts">
   import { badge } from '../lib/badge.svelte';
-  import { defaults } from '../lib/cycle';
-  import { exportCsv } from '../lib/log';
+  import { defaults, toDay } from '../lib/cycle';
+  import { formatDay } from '../lib/format';
+  import { parseImport, type Imported } from '../lib/import';
+  import { exportCsv, isBleeding } from '../lib/log';
   import { install } from '../lib/install.svelte';
   import { errorMessage, pb, type User } from '../lib/pb';
   import { session } from '../lib/session.svelte';
@@ -44,6 +46,33 @@
     a.download = 'flowy.csv';
     a.click();
     URL.revokeObjectURL(a.href);
+  }
+
+  let importing: Imported | null = $state(null);
+  let importMessage = $state('');
+
+  const shortDate = (iso: string) =>
+    formatDay(toDay(iso), { day: 'numeric', month: 'short', year: 'numeric' });
+
+  async function pick(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    importing = null;
+    importMessage = '';
+    if (!file) return;
+    try {
+      importing = parseImport(await file.text(), periodLength);
+    } catch (err) {
+      importMessage = err instanceof Error ? err.message : 'Could not read the file.';
+    }
+  }
+
+  async function confirmImport() {
+    const days = importing!.days;
+    importing = null;
+    await tracker.import(days);
+    importMessage = `Imported ${days.length} ${days.length === 1 ? 'day' : 'days'}.`;
   }
 
   async function saveCycle(e: SubmitEvent) {
@@ -155,14 +184,45 @@
 
 <PartnerShare />
 
-<section class="card flex items-center justify-between gap-4">
+<section class="card flex flex-col gap-3">
   <div>
     <h2 class="font-semibold">Your data</h2>
-    <p class="text-sm text-zinc-500">Download everything you logged, as a spreadsheet.</p>
+    <p class="text-sm text-zinc-500">
+      Download everything you logged as a spreadsheet, or bring in days exported from another app
+      (CSV or JSON with a date on each row).
+    </p>
   </div>
-  <button class="btn-secondary shrink-0" onclick={() => download(exportCsv(tracker.logs.values()))}
-    >Export</button
-  >
+  <div class="flex gap-3">
+    <button class="btn-secondary flex-1" onclick={() => download(exportCsv(tracker.logs.values()))}
+      >Export</button
+    >
+    <label class="btn-secondary flex-1 cursor-pointer text-center"
+      >Import<input
+        class="sr-only"
+        type="file"
+        accept=".csv,.tsv,.txt,.json,text/csv,application/json"
+        onchange={pick}
+      /></label
+    >
+  </div>
+  {#if importing}
+    {@const d = importing.days}
+    <div class="flex flex-col gap-3 rounded-lg bg-zinc-100 p-3 text-sm dark:bg-zinc-800">
+      <p>
+        Found {d.length}
+        {d.length === 1 ? 'day' : 'days'} from {shortDate(d[0].date)} to {shortDate(
+          d[d.length - 1].date,
+        )}, {d.filter((l) => isBleeding(l.flow)).length} of them period days.
+        {#if importing.skipped}{importing.skipped} rows had no date Flowy could read.{/if}
+        Days you already logged keep what's there; the file only fills in the gaps.
+      </p>
+      <div class="flex gap-3">
+        <button class="btn-primary flex-1" onclick={confirmImport}>Import</button>
+        <button class="btn-secondary flex-1" onclick={() => (importing = null)}>Cancel</button>
+      </div>
+    </div>
+  {/if}
+  {#if importMessage}<p class="text-sm text-zinc-500" role="status">{importMessage}</p>{/if}
 </section>
 
 {#if install.canPrompt}

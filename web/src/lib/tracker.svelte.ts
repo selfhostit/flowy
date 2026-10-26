@@ -1,6 +1,7 @@
 import { SvelteMap } from 'svelte/reactivity';
 import { analyze, defaults, phases, toDay, today, type Settings } from './cycle';
-import { isBleeding, isEmpty, type DayLog } from './log';
+import { merge } from './import';
+import { isBleeding, isEmpty, type DayFields, type DayLog } from './log';
 import { DeviceCopy, fieldsOf, withPending, type Pending } from './offline';
 import { errorMessage, pb } from './pb';
 import { session } from './session.svelte';
@@ -94,6 +95,25 @@ class Tracker {
         this.logs.get(date) ?? ({ id: '', collectionId: '', collectionName: 'days' } as DayLog);
       this.logs.set(date, { ...base, ...next, user: user.id });
       pending[date] = fieldsOf(next);
+    }
+    this.device.savePending(pending);
+    this.device.saveLogs(this.logs.values());
+    this.unsynced = Object.keys(pending).length;
+    await this.sync();
+  }
+
+  /** Adds days read from a file, keeping what's already logged on each of them. */
+  async import(days: DayFields[]) {
+    const user = session.user;
+    if (!user || !this.device) return;
+    const pending = this.device.pending();
+    for (const day of days) {
+      const logged = this.logs.get(day.date);
+      const next = merge(logged && fieldsOf(logged), day);
+      if (logged && JSON.stringify(fieldsOf(logged)) === JSON.stringify(next)) continue;
+      const base = logged ?? ({ id: '', collectionId: '', collectionName: 'days' } as DayLog);
+      this.logs.set(day.date, { ...base, ...next, user: user.id });
+      pending[day.date] = next;
     }
     this.device.savePending(pending);
     this.device.saveLogs(this.logs.values());
