@@ -66,8 +66,9 @@ if [ ! -f .env ]; then
 	# another app may already use 8090: PORT=8091 sh install.sh
 	if [ -n "${PORT:-}" ]; then setenv PORT "$PORT"; fi
 
+	# Asks only when TS_AUTHKEY is not set; set but empty means no Tailscale.
 	key=${TS_AUTHKEY:-}
-	if [ -z "$key" ] && interactive; then
+	if [ -z "${TS_AUTHKEY+set}" ] && interactive; then
 		echo
 		echo "Tailscale gives the app an https:// address that only your devices can reach,"
 		echo "which phones need to install it and get notifications. Paste an auth key from"
