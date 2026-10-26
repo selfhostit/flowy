@@ -57,7 +57,8 @@ Open `https://flowy.<your-name>.synology.me` and create the owner account. Add
 other people from the admin page (`/_/`); each person only sees their own
 calendar. On the phone, sign in and choose **⋮ > Install app** in Chrome on
 Android or **Share > Add to Home Screen** in Safari on iPhone, then turn on
-notifications in Settings for reminders.
+notifications in Settings for reminders. [Phones](deploy.md#phones) lists what
+works on Android and iPhone.
 
 ## Updating
 

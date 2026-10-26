@@ -46,11 +46,51 @@ install script again).
 3. The app is now at `https://flowy.<your-tailnet>.ts.net` (the script prints it).
    The first visit can take a few seconds while the certificate is issued.
 
-On a phone, install the Tailscale app, open that address and add it to the home
-screen. Push notifications need this HTTPS address.
+Phones join the tailnet with the Tailscale app; see [Phones](#phones).
 
 To add Tailscale later, set `TS_AUTHKEY` and uncomment the `COMPOSE_FILE` line in
 `.env`, then run `docker compose up -d`. `TS_HOSTNAME` sets the name.
+
+## Phones
+
+Flowy installs from the browser; there is no app store app.
+
+1. Install the **Tailscale** app and sign in. With Tailscale switched on, the
+   tailnet address works from anywhere with internet, not only at home.
+2. Open `https://flowy.<your-tailnet>.ts.net` (or your reverse proxy address) and
+   create an account. The first one becomes the owner.
+3. Install it: **⋮ > Install app** in Chrome on Android, or **Share > Add to Home
+   Screen** in Safari on iPhone. Then turn on reminders in Settings.
+
+What the installed app can do depends on the phone:
+
+| | Android (Chrome) | iPhone (Safari) |
+| --- | --- | --- |
+| Reminders | yes | yes, once installed to the home screen |
+| Cycle day on the icon | no (Android shows a dot for notifications) | yes, with notifications on |
+| Long-press shortcuts | yes | no |
+
+### Other people
+
+Each person signs up with their own account and only sees their own calendar.
+Over Tailscale they also need to reach the app: share just the app's machine with
+them (Tailscale admin console > Machines > ⋯ > Share) rather than inviting them to
+the whole tailnet. They install Tailscale, sign in with their own account and
+accept the share. A partner share link from Settings is the same address, so it
+needs Tailscale too.
+
+### Other VPNs
+
+A phone runs one VPN at a time, and Tailscale is one, so it can't be on together
+with another VPN app. While the other VPN is on:
+
+- logging still works: days are saved on the phone and sent once Tailscale is back
+  on (the app shows "Can't reach your server" until then);
+- reminders still arrive, since they come through the phone's push service, not
+  the tailnet.
+
+To use the app without Tailscale on phones, serve it at a public address with a
+reverse proxy instead (for a Synology, see [synology.md](synology.md)).
 
 ## Updates and versions
 
