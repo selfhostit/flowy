@@ -142,14 +142,14 @@ Makefile            run `make` to see every command
 
 ## Commands
 
-| Command      | What it does                                        |
-| ------------ | --------------------------------------------------- |
-| `make dev`   | Run everything with live reload                     |
-| `make check` | Format, lint and type-check                         |
-| `make test`  | Run the Go, web and worker tests                    |
-| `make build` | Build `dist/flowy` with the web app next to it      |
-| `make run`   | Build the Docker image and run it on :8090          |
-| `make smoke` | Deploy both images with Compose and test end to end |
+| Command      | What it does                                          |
+| ------------ | ----------------------------------------------------- |
+| `make dev`   | Run everything with live reload                       |
+| `make check` | Format, lint and type-check                           |
+| `make test`  | Run the Go, web and worker tests                      |
+| `make build` | Build `dist/flowy` with the web app next to it       |
+| `make run`   | Build the Docker image and run it on :8090            |
+| `make smoke` | Deploy both images with Compose and test end to end   |
 
 Pushes to `main` publish `ghcr.io/selfhostit/flowy` and
 `ghcr.io/selfhostit/flowy-worker` for amd64, arm64 and armv7; a `v*` tag
