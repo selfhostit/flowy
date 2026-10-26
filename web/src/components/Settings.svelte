@@ -166,7 +166,9 @@
     Days from ovulation to period
     <input type="number" min="7" max="20" bind:value={lutealLength} required />
     <span class="font-normal text-zinc-500"
-      >14 for most people. Leave it unless you know yours.</span
+      >{tracker.analysis.lutealLearned
+        ? `Flowy has learned ${tracker.analysis.lutealLength} days from your temperatures.`
+        : '14 for most people. Flowy learns yours if you log your temperature each morning.'}</span
     >
   </label>
   <button class="btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>

@@ -35,13 +35,21 @@
         small: left > 0 ? `About ${days(left)} to go` : 'Expected to end today',
       };
     }
+    const date = (d: Day) => formatDay(d, { weekday: 'short', month: 'short', day: 'numeric' });
+    // cycles vary, so a period a few days after the expected day isn't late yet
+    if (a.late && a.late <= a.margin)
+      return {
+        label: 'Period due',
+        big: 'Any day now',
+        small: `Most likely by ${date(a.nextStart + a.margin)}`,
+      };
     if (a.late)
       return { label: 'Period is late', big: days(a.late), small: 'It can start any day now.' };
     const until = a.nextStart - now;
     return {
       label: 'Period in',
       big: until === 0 ? 'Today' : until === 1 ? '1 day' : days(until),
-      small: `Expected ${formatDay(a.nextStart, { weekday: 'short', month: 'short', day: 'numeric' })}`,
+      small: `Expected ${date(a.nextStart)} · ± ${days(a.margin)}`,
     };
   });
 

@@ -7,6 +7,7 @@ import {
   defaults,
   fertility,
   mostlyIn,
+  ovulationFromTemps,
   periods,
   phases,
   pregnancyChance,
@@ -18,6 +19,9 @@ import {
 
 const d = toDay;
 const range = (from: string, n: number) => Array.from({ length: n }, (_, i) => d(from) + i);
+// low readings from a day on, then high ones (same as backend/cycle/cycle_test.go)
+const temps = (from: string, low: number, high: number) =>
+  range(from, low + high).map((day, i) => ({ day, celsius: i < low ? 36.4 : 36.7 }));
 
 describe('days', () => {
   it('round-trips ISO dates', () => {
@@ -62,6 +66,30 @@ describe('analyze', () => {
     expect(a.ovulations.map(toIso).slice(0, 3)).toEqual(['2026-01-17', '2026-02-16', '2026-03-18']);
   });
 
+  it('weights recent cycles more and gives a window from how much they vary', () => {
+    // a 26-day cycle, then a 30-day one: (26 + 2×30) / 3 rounds to 29
+    const bleeding = [
+      ...range('2026-01-01', 4),
+      ...range('2026-01-27', 4),
+      ...range('2026-02-26', 4),
+    ];
+    expect(analyze(bleeding, defaults, d('2026-03-10'))).toMatchObject({
+      cycleLength: 29,
+      margin: 2,
+    });
+  });
+
+  it('learns the luteal phase from temperatures and predicts from this cycle’s ovulation', () => {
+    const bleeding = [...range('2026-01-01', 4), ...range('2026-01-29', 4)];
+    const ts = [...temps('2026-01-01', 13, 15), ...temps('2026-01-29', 12, 3)];
+    const a = analyze(bleeding, defaults, d('2026-02-12'), ts);
+    // ovulation on 13 January, 16 days before the period; this cycle on 9 February
+    expect(a).toMatchObject({ lutealLength: 16, lutealLearned: true, margin: 1 });
+    expect(toIso(a.confirmedOvulation!)).toBe('2026-02-09');
+    expect(toIso(a.nextStart!)).toBe('2026-02-25');
+    expect(a.ovulations.map(toIso).slice(0, 2)).toEqual(['2026-01-13', '2026-02-09']);
+  });
+
   it('ignores cycles that are most likely a missed log', () => {
     const bleeding = [
       ...range('2026-01-01', 3),
@@ -82,6 +110,14 @@ describe('analyze', () => {
     expect(a.current).toBeNull();
     expect(a.late).toBe(4);
     expect(toIso(a.predicted[0].start)).toBe('2026-02-02');
+  });
+});
+
+describe('ovulationFromTemps', () => {
+  it('needs three high readings over six low ones', () => {
+    expect(toIso(ovulationFromTemps(temps('2026-01-01', 13, 3))!)).toBe('2026-01-13');
+    expect(ovulationFromTemps(temps('2026-01-01', 13, 2))).toBeNull();
+    expect(ovulationFromTemps(temps('2026-01-01', 5, 5))).toBeNull();
   });
 });
 

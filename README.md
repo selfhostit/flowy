@@ -13,7 +13,7 @@
 </div>
 
 Flowy predicts your next period, fertile window and ovulation from the periods
-you log, and keeps everything on your own hardware (a NAS, a Raspberry Pi, a
+you log (and your morning temperature, if you log it), and keeps everything on your own hardware (a NAS, a Raspberry Pi, a
 small server). Install it on your phone from the browser.
 
 - **Today:** days until your period (or which day of it you're on, or how late it

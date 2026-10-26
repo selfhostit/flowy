@@ -55,56 +55,147 @@ export interface PastCycle {
   periodLength: number;
 }
 
+/** A basal body temperature reading, in °C. */
+export interface Temp {
+  day: Day;
+  celsius: number;
+}
+
 export interface Analysis {
   periods: Period[];
   /** Finished cycles, oldest first: from one period's start to the next. */
   history: PastCycle[];
   cycleLength: number;
   periodLength: number;
+  /** Days from ovulation to the next period, learned from temperatures or the setting. */
+  lutealLength: number;
   /** Whether the lengths come from logged periods rather than the settings. */
   learned: boolean;
+  /** Whether lutealLength comes from temperature shifts rather than the setting. */
+  lutealLearned: boolean;
   /** The period going on today: its logged days and the rest of its expected length. */
   current: Period | null;
   /** When the next period should start, or null before any period is logged. */
   nextStart: Day | null;
+  /** How many days either side of nextStart the period can be expected. */
+  margin: number;
+  /** Ovulation this cycle, when a temperature shift shows it has happened. */
+  confirmedOvulation: Day | null;
   /** Days past nextStart without a period. */
   late: number;
   predicted: Period[];
   ovulations: Day[];
 }
 
-// lengths are learned from the last few cycles; longer or shorter ones are
-// most likely a period that wasn't logged, so they're left out
+// lengths are learned from the last few cycles, the latest counting most;
+// longer or shorter ones are most likely a period that wasn't logged, so
+// they're left out
 const learnFrom = 6;
 const usableCycle = (length: number) => length >= 15 && length <= 60;
-const average = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
+const usableLuteal = (length: number) => length >= 7 && length <= 20;
+const round = (x: number) => Math.floor(x + 0.5);
 
-/** Works out cycle lengths and predictions from the days with bleeding. */
-export function analyze(bleeding: Day[], settings: Settings, now: Day, cycles = 12): Analysis {
+/** The average of the last few values, each weighted by how recent it is. */
+function weighted(xs: number[]): number {
+  const recent = xs.slice(-learnFrom);
+  let sum = 0;
+  let weights = 0;
+  recent.forEach((x, i) => {
+    sum += x * (i + 1);
+    weights += i + 1;
+  });
+  return round(sum / weights);
+}
+
+/** How many days either side of the expected start, from how much cycles vary. */
+function marginOf(lengths: number[]): number {
+  const recent = lengths.slice(-learnFrom);
+  // cycles of most people vary by a couple of days
+  if (recent.length < 2) return 2;
+  const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+  const variance = recent.reduce((a, x) => a + (x - mean) ** 2, 0) / recent.length;
+  return Math.min(7, Math.max(1, round(Math.sqrt(variance))));
+}
+
+/**
+ * The day of ovulation from basal body temperatures, by the three over six rule:
+ * three readings above the highest of the six before them, the third at least
+ * 0.2 °C above it. Ovulation is the day before the first high reading.
+ */
+export function ovulationFromTemps(temps: Temp[]): Day | null {
+  const ts = [...temps].sort((a, b) => a.day - b.day);
+  for (let i = 6; i + 2 < ts.length; i++) {
+    // gaps of a few days are fine, a week of readings over a month isn't
+    if (ts[i].day - ts[i - 6].day > 10 || ts[i + 2].day - ts[i].day > 4) continue;
+    const cover = Math.max(...ts.slice(i - 6, i).map((t) => t.celsius));
+    const high = ts.slice(i, i + 3).every((t) => t.celsius > cover);
+    if (high && ts[i + 2].celsius >= cover + 0.2) return ts[i].day - 1;
+  }
+  return null;
+}
+
+/** Works out cycle lengths and predictions from the days with bleeding and any temperatures. */
+export function analyze(
+  bleeding: Day[],
+  settings: Settings,
+  now: Day,
+  temps: Temp[] = [],
+  cycles = 12,
+): Analysis {
   const ps = periods(bleeding);
   const history = ps.slice(0, -1).map((p, i) => ({
     start: p.start,
     length: ps[i + 1].start - p.start,
     periodLength: p.end - p.start + 1,
   }));
-  const recent = history.filter((c) => usableCycle(c.length)).slice(-learnFrom);
-  const cycleLength = recent.length ? average(recent.map((c) => c.length)) : settings.cycleLength;
+  const usable = history.filter((c) => usableCycle(c.length)).map((c) => c.length);
+  const cycleLength = usable.length ? weighted(usable) : settings.cycleLength;
   // a period that could still get another day isn't finished
   const finished = ps
     .filter((p) => p.end + 2 < now)
     .map((p) => p.end - p.start + 1)
-    .filter((l) => l <= 15)
-    .slice(-learnFrom);
-  const periodLength = finished.length ? average(finished) : settings.periodLength;
-  const base = { periods: ps, history, cycleLength, periodLength, learned: recent.length > 0 };
+    .filter((l) => l <= 15);
+  const periodLength = finished.length ? weighted(finished) : settings.periodLength;
+  // the time from ovulation to the next period hardly changes from cycle to
+  // cycle, so it's learned from the cycles where temperatures show ovulation
+  const tempsIn = (from: Day, to: Day) => temps.filter((t) => from <= t.day && t.day < to);
+  const luteals = history
+    .map((c) => {
+      const o = ovulationFromTemps(tempsIn(c.start, c.start + c.length));
+      return o === null ? 0 : c.start + c.length - o;
+    })
+    .filter(usableLuteal);
+  const lutealLength = luteals.length ? weighted(luteals) : settings.lutealLength;
+  const base = {
+    periods: ps,
+    history,
+    cycleLength,
+    periodLength,
+    lutealLength,
+    learned: usable.length > 0,
+    lutealLearned: luteals.length > 0,
+  };
 
   const last = ps.at(-1);
   if (!last)
-    return { ...base, current: null, nextStart: null, late: 0, predicted: [], ovulations: [] };
+    return {
+      ...base,
+      current: null,
+      nextStart: null,
+      margin: 0,
+      confirmedOvulation: null,
+      late: 0,
+      predicted: [],
+      ovulations: [],
+    };
 
   const end = Math.max(last.end, last.start + periodLength - 1);
   const current = last.start <= now && now <= end ? { start: last.start, end } : null;
-  const nextStart = last.start + cycleLength;
+  // once a temperature shift shows ovulation, the period follows a luteal phase later
+  const confirmedOvulation = ovulationFromTemps(tempsIn(last.start, now + 1));
+  const nextStart =
+    confirmedOvulation === null ? last.start + cycleLength : confirmedOvulation + lutealLength;
+  const margin = confirmedOvulation === null ? marginOf(usable) : 1;
   const late = current ? 0 : Math.max(0, now - nextStart);
   // a late period is expected any day now
   const first = Math.max(nextStart, now);
@@ -117,8 +208,8 @@ export function analyze(bleeding: Day[], settings: Settings, now: Day, cycles = 
     nextStart,
     ...predicted.slice(1).map((p) => p.start),
   ];
-  const ovulations = starts.map((s) => s - settings.lutealLength);
-  return { ...base, current, nextStart, late, predicted, ovulations };
+  const ovulations = starts.map((s) => s - lutealLength);
+  return { ...base, current, nextStart, margin, confirmedOvulation, late, predicted, ovulations };
 }
 
 export type Phase = 'period' | 'predicted' | 'ovulation' | 'fertile';
