@@ -47,6 +47,8 @@ class Tracker {
       if (this.loaded) this.load();
     });
     addEventListener('online', () => this.loaded && this.load());
+    // signed out here or elsewhere, or the login ran out
+    pb.authStore.onChange(() => pb.authStore.isValid || this.close());
   }
 
   private show(logs: DayLog[]) {
@@ -181,7 +183,13 @@ class Tracker {
 
   /** Removes this person's data from the device, when they sign out. */
   forget() {
-    this.device?.forget();
+    const user = session.user;
+    if (user) (this.device ?? new DeviceCopy(user.id)).forget();
+    this.close();
+  }
+
+  /** Stops showing the logs, once nobody is signed in. */
+  private close() {
     this.device = null;
     this.logs.clear();
     this.loaded = false;

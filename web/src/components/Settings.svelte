@@ -4,7 +4,9 @@
   import { formatDay } from '../lib/format';
   import { parseImport, type Imported } from '../lib/import';
   import { exportCsv, isBleeding } from '../lib/log';
+  import { validPin } from '../lib/pin';
   import { install } from '../lib/install.svelte';
+  import { lock } from '../lib/lock.svelte';
   import { errorMessage, pb, type User } from '../lib/pb';
   import { session } from '../lib/session.svelte';
   import { tracker } from '../lib/tracker.svelte';
@@ -35,9 +37,47 @@
     }
   }
 
-  function signOut() {
+  let loseUnsent = $state(false);
+  let askEverywhere = $state(false);
+  let signOutError = $state('');
+
+  /** Signs out here, or on every device. Changes not sent yet are sent first if they can be. */
+  async function signOut(everywhere = false) {
+    signOutError = '';
+    if (tracker.unsynced) await tracker.sync();
+    // the warning below says what would be lost; the second tap goes ahead
+    if (tracker.unsynced && !loseUnsent) {
+      loseUnsent = true;
+      return;
+    }
+    if (everywhere) {
+      try {
+        await pb.send('/api/app/signout-everywhere', { method: 'POST' });
+      } catch (err) {
+        signOutError = errorMessage(err, 'Could not sign out everywhere. Please try again.');
+        return;
+      }
+    }
     tracker.forget();
-    session.logout();
+    lock.forget();
+    await session.logout();
+  }
+
+  let settingPin = $state(false);
+  let pin = $state('');
+  let pinAgain = $state('');
+  let pinMessage = $state('');
+
+  async function savePin(e: SubmitEvent) {
+    e.preventDefault();
+    if (!validPin(pin)) pinMessage = 'Use 4 to 8 digits.';
+    else if (pin !== pinAgain) pinMessage = "The two PINs don't match.";
+    else {
+      await lock.set(pin);
+      settingPin = false;
+      pinMessage = 'PIN saved.';
+    }
+    pin = pinAgain = '';
   }
 
   function download(csv: string) {
@@ -182,6 +222,66 @@
   </section>
 {/if}
 
+{#if lock.supported}
+  <section class="card flex flex-col gap-3">
+    <div>
+      <h2 class="font-semibold">App lock</h2>
+      <p class="text-sm text-zinc-500">
+        {lock.saved
+          ? 'Flowy asks for your PIN on this device when it opens, and after a minute away.'
+          : 'Ask for a PIN when Flowy opens on this device, and after a minute away, so someone holding your unlocked phone can’t look in.'}
+      </p>
+    </div>
+    {#if settingPin}
+      <form class="flex flex-col gap-3" onsubmit={savePin}>
+        <div class="grid grid-cols-2 gap-3">
+          <label
+            >New PIN<input
+              type="password"
+              inputmode="numeric"
+              autocomplete="new-password"
+              maxlength="8"
+              bind:value={pin}
+              required
+            /></label
+          >
+          <label
+            >Repeat it<input
+              type="password"
+              inputmode="numeric"
+              autocomplete="new-password"
+              maxlength="8"
+              bind:value={pinAgain}
+              required
+            /></label
+          >
+        </div>
+        <div class="flex gap-3">
+          <button class="btn-primary flex-1">Save PIN</button>
+          <button type="button" class="btn-secondary flex-1" onclick={() => (settingPin = false)}
+            >Cancel</button
+          >
+        </div>
+      </form>
+    {:else if lock.saved}
+      <div class="flex gap-3">
+        <button
+          class="btn-secondary flex-1"
+          onclick={() => ((settingPin = true), (pinMessage = ''))}>Change PIN</button
+        >
+        <button class="btn-secondary flex-1" onclick={() => ((pinMessage = ''), lock.forget())}
+          >Turn off</button
+        >
+      </div>
+    {:else}
+      <button class="btn-secondary" onclick={() => ((settingPin = true), (pinMessage = ''))}
+        >Set a PIN</button
+      >
+    {/if}
+    {#if pinMessage}<p class="text-sm text-zinc-500" role="status">{pinMessage}</p>{/if}
+  </section>
+{/if}
+
 <PartnerShare />
 
 <section class="card flex flex-col gap-3">
@@ -241,14 +341,40 @@
     <p class="text-zinc-600 dark:text-zinc-400">
       Signed in as {user.name || user.email}{session.isOwner ? ' (owner)' : ''}.
     </p>
-    <button class="btn-secondary shrink-0 px-3 py-2 text-sm" onclick={signOut}>Sign out</button>
+    <button class="btn-secondary shrink-0 px-3 py-2 text-sm" onclick={() => signOut()}
+      >{loseUnsent && tracker.unsynced ? 'Sign out anyway' : 'Sign out'}</button
+    >
   </div>
   {#if tracker.unsynced}
-    <p class="text-amber-700 dark:text-amber-300">
+    <p class="text-amber-700 dark:text-amber-300" role={loseUnsent ? 'alert' : undefined}>
       {tracker.unsynced} logged {tracker.unsynced === 1 ? 'day is' : 'days are'} only on this phone so
-      far. Signing out now would lose {tracker.unsynced === 1 ? 'it' : 'them'}.
+      far{loseUnsent ? ', and Flowy can’t reach the server right now' : ''}. Signing out now would
+      lose {tracker.unsynced === 1 ? 'it' : 'them'}.
     </p>
   {/if}
+  {#if askEverywhere}
+    <div class="flex flex-col gap-3 rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
+      <p>
+        Every phone and computer signed in as you is signed out, this one too, and stops getting
+        notifications. The others remove their copy of your logs the next time they reach the
+        server.
+      </p>
+      <div class="flex gap-3">
+        <button class="btn-primary flex-1" onclick={() => signOut(true)}
+          >{loseUnsent && tracker.unsynced
+            ? 'Sign out everywhere anyway'
+            : 'Sign out everywhere'}</button
+        >
+        <button class="btn-secondary flex-1" onclick={() => (askEverywhere = false)}>Cancel</button>
+      </div>
+    </div>
+  {:else}
+    <button
+      class="self-start text-zinc-600 underline dark:text-zinc-400"
+      onclick={() => (askEverywhere = true)}>Lost a phone? Sign out on all devices</button
+    >
+  {/if}
+  {#if signOutError}<p class="text-red-600 dark:text-red-400" role="alert">{signOutError}</p>{/if}
   {#if session.isOwner}
     <p class="text-zinc-600 dark:text-zinc-400">
       Add people and manage data in the <a

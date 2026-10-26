@@ -38,6 +38,9 @@ small server). Install it on your phone from the browser.
   fertile window starts, and for your pill.
 - **Works offline:** logs are saved on the phone and sent to the server when it
   is reachable again.
+- **Locked down on the phone:** an optional PIN for the app, sign-out removes your
+  logs from the phone (and warns first if some haven't reached the server), and
+  "sign out on all devices" for a lost phone.
 - **Private:** sign-in with email and password, each person only sees their own
   calendar (a partner link shows a summary, never your history or notes), and the data never leaves your server. Export it as CSV any time, and import days exported from another app.
 

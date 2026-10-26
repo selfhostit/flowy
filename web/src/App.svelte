@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { lock } from './lib/lock.svelte';
   import { errorMessage, pb } from './lib/pb';
   import { session } from './lib/session.svelte';
   import Home from './components/Home.svelte';
+  import Lock from './components/Lock.svelte';
   import Login from './components/Login.svelte';
   import Partner from './components/Partner.svelte';
   import Setup from './components/Setup.svelte';
@@ -41,6 +43,8 @@
 
 {#if partner}
   <Partner token={partner} />
+{:else if session.user && lock.locked}
+  <Lock />
 {:else if session.user}
   <Home />
 {:else if error}

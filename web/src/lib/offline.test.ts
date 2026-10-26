@@ -48,4 +48,14 @@ describe('DeviceCopy', () => {
     alice.forget();
     expect(alice.logs()).toEqual([]);
   });
+
+  it('keeps unsent changes when only the synced copy goes', () => {
+    const storage = new MemoryStorage() as unknown as Storage;
+    const alice = new DeviceCopy('alice', storage);
+    alice.saveLogs([server('2026-01-01')]);
+    alice.savePending({ '2026-01-02': null });
+    alice.forgetSynced();
+    expect(alice.logs()).toEqual([]);
+    expect(alice.pending()).toEqual({ '2026-01-02': null });
+  });
 });
