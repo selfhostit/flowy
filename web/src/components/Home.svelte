@@ -30,7 +30,9 @@
   ] as const;
   type Tab = (typeof tabs)[number]['id'];
 
-  const fromHash = (): Tab => tabs.find((t) => `#${t.id}` === location.hash)?.id ?? 'today';
+  const fromHash = (): Tab =>
+    tabs.find((t) => location.hash === `#${t.id}` || location.hash.startsWith(`#${t.id}/`))?.id ??
+    'today';
   let tab = $state<Tab>(fromHash());
   let logging = $state<string | null>(null);
   const log = (date: string) => (logging = date);

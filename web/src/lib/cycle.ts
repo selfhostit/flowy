@@ -313,6 +313,20 @@ export function stats(history: PastCycle[]): Stats | null {
   };
 }
 
+/** How far a cycle is from someone's usual length before it's pointed out. */
+export const unusualBy = 8;
+
+/** The middle length of someone's cycles, once there are enough of them to say. */
+export function typicalLength(history: PastCycle[]): number | null {
+  const lengths = history
+    .map((c) => c.length)
+    .filter(usableCycle)
+    .sort((a, b) => a - b);
+  if (lengths.length < 4) return null;
+  const mid = lengths.length >> 1;
+  return lengths.length % 2 ? lengths[mid] : round((lengths[mid - 1] + lengths[mid]) / 2);
+}
+
 /** The phase most of these days fall in, when there are enough days and one clearly leads. */
 export function mostlyIn(a: Analysis, days: Day[]): CyclePhase | null {
   const counts = new Map<CyclePhase, number>();

@@ -6,8 +6,9 @@
 
   let { onlog }: { onlog: (date: string) => void } = $props();
 
-  // the month on screen, as its first day
-  let month = $state(firstOfMonth(tracker.now));
+  // the month on screen, as its first day; #calendar/2026-03 opens on March 2026
+  const asked = /^#calendar\/(\d{4}-\d{2})$/.exec(location.hash)?.[1];
+  let month = $state(asked ? toDay(asked + '-01') : firstOfMonth(tracker.now));
   // in edit mode a tap marks or unmarks a period day instead of opening the log
   let editing = $state(false);
   let error = $state('');
