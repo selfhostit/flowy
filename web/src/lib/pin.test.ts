@@ -11,7 +11,8 @@ describe('validPin', () => {
 describe('PIN', () => {
   it('checks the PIN against its hash', async () => {
     const saved = await makePin('2468');
-    expect(saved.hash).not.toContain('2468');
+    // a random hash can contain any four digits, so check its shape instead
+    expect(saved.hash).toMatch(/^[0-9a-f]{64}$/);
     expect(await checkPin('2468', saved)).toBe(true);
     expect(await checkPin('2469', saved)).toBe(false);
   });
