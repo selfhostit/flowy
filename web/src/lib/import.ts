@@ -256,11 +256,9 @@ function diaryDays(text: string, periodLength: number): Imported {
   // a period that hasn't ended yet
   if (start !== null) period(start, start + periodLength - 1);
 
-  for (const [date, flow] of flows) {
-    const d = day(date);
-    // spotting on a day inside a period doesn't make it lighter
-    if (flow !== 'spotting' || !d.flow) d.flow = flow;
-  }
+  // flow logged on a day beats the period's default, so a period that tails off
+  // into spotting only counts its bleeding days
+  for (const [date, flow] of flows) day(date).flow = flow;
   for (const [date, names] of named) {
     const d = day(date);
     const [known, other] = readList(names.join(';'), symptoms);
