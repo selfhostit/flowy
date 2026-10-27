@@ -184,6 +184,7 @@ function diaryDays(text: string, periodLength: number): Imported {
       d.notes = [d.notes, text].filter(Boolean).join('\n');
   };
   const flows = new Map<string, Flow>();
+  const spotting = new Set<string>();
   const named = new Map<string, string[]>();
   const period = (from: number, to: number) => {
     for (let d = from; d <= to && d - from < 15; d++) {
@@ -221,7 +222,7 @@ function diaryDays(text: string, periodLength: number): Imported {
               const level: Flow =
                 pluses.length >= 3 ? 'heavy' : pluses.length === 2 ? 'medium' : 'light';
               flows.set(date, level);
-            } else if (key(name) === 'spotting') flows.has(date) || flows.set(date, 'spotting');
+            } else if (key(name) === 'spotting') spotting.add(date);
             else named.set(date, [...(named.get(date) ?? []), name]);
           }
         }
@@ -257,8 +258,12 @@ function diaryDays(text: string, periodLength: number): Imported {
   if (start !== null) period(start, start + periodLength - 1);
 
   // flow logged on a day beats the period's default, so a period that tails off
-  // into spotting only counts its bleeding days
-  for (const [date, flow] of flows) day(date).flow = flow;
+  // into spotting only counts its bleeding days; flow logged with spotting
+  // outside a marked period, such as the day before one starts, is spotting
+  const marked = new Set([...byDate.values()].filter((d) => d.flow).map((d) => d.date));
+  for (const date of spotting) day(date).flow = 'spotting';
+  for (const [date, flow] of flows)
+    if (!spotting.has(date) || marked.has(date)) day(date).flow = flow;
   for (const [date, names] of named) {
     const d = day(date);
     const [known, other] = readList(names.join(';'), symptoms);

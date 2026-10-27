@@ -98,6 +98,7 @@ describe('parseImport', () => {
 
   it('reads a diary export, one dated entry a line', () => {
     const diary = [
+      'Mar 29, 2025\tSymptoms:+++Spotting,Flow;',
       'Mar 30, 2025\tPeriod Starts',
       'Mar 30, 2025\tSymptoms:+++Abdominal cramps;++Flow,Hiccups;+Fatigue;',
       'Mar 30, 2025\tMoods:Grumpy,Bored',
@@ -113,6 +114,7 @@ describe('parseImport', () => {
     const { days, skipped } = parseImport(diary, 2);
     expect(skipped).toBe(0);
     expect(days).toEqual([
+      fieldsOf({ date: '2025-03-29', flow: 'spotting' }),
       fieldsOf({
         date: '2025-03-30',
         flow: 'medium',
