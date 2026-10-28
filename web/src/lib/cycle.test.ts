@@ -8,6 +8,7 @@ import {
   fertility,
   mostlyIn,
   ovulationFromTemps,
+  typicalLength,
   periods,
   phases,
   pregnancyChance,
@@ -181,6 +182,16 @@ describe('currentCycle', () => {
   it('stretches to today when the period is late', () => {
     const a = analyze(range('2026-01-01', 5), defaults, d('2026-02-02'));
     expect(currentCycle(a, d('2026-02-02'))?.end).toBe(d('2026-02-02'));
+  });
+});
+
+describe('typicalLength', () => {
+  const cycle = (length: number) => ({ start: 0, length, periodLength: 5 });
+
+  it('takes the middle of the usable cycles, once there are four', () => {
+    expect(typicalLength([28, 44, 26].map(cycle))).toBeNull();
+    expect(typicalLength([28, 44, 26, 27, 90].map(cycle))).toBe(28);
+    expect(typicalLength([28, 44, 26, 27].map(cycle))).toBe(28);
   });
 });
 

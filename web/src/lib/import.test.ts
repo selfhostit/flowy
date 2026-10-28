@@ -98,11 +98,13 @@ describe('parseImport', () => {
 
   it('reads a diary export, one dated entry a line', () => {
     const diary = [
+      'Mar 29, 2025\tSymptoms:+++Spotting,Flow;',
       'Mar 30, 2025\tPeriod Starts',
       'Mar 30, 2025\tSymptoms:+++Abdominal cramps;++Flow,Hiccups;+Fatigue;',
       'Mar 30, 2025\tMoods:Grumpy,Bored',
       'Mar 31, 2025\tSymptoms:++++Flow,Spotting;',
       'Mar 31, 2025\tMedicine:ibuprofen,',
+      'Apr 1, 2025\tSymptoms:+Spotting;',
       'Apr 2, 2025\tPeriod Ends',
       'Apr 10, 2025\tSymptoms:+Spotting;',
       'Apr 12, 2025\tIntercourse(With Condom)',
@@ -112,6 +114,7 @@ describe('parseImport', () => {
     const { days, skipped } = parseImport(diary, 2);
     expect(skipped).toBe(0);
     expect(days).toEqual([
+      fieldsOf({ date: '2025-03-29', flow: 'spotting' }),
       fieldsOf({
         date: '2025-03-30',
         flow: 'medium',
@@ -121,7 +124,7 @@ describe('parseImport', () => {
         notes: 'Mood: Bored',
       }),
       fieldsOf({ date: '2025-03-31', flow: 'heavy', notes: 'Medicine: ibuprofen' }),
-      fieldsOf({ date: '2025-04-01', flow: 'medium' }),
+      fieldsOf({ date: '2025-04-01', flow: 'spotting' }),
       fieldsOf({ date: '2025-04-02', flow: 'medium' }),
       fieldsOf({ date: '2025-04-10', flow: 'spotting' }),
       fieldsOf({ date: '2025-04-12', sex: 'protected', notes: 'a note, with a comma' }),

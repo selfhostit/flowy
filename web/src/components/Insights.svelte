@@ -1,5 +1,14 @@
 <script lang="ts">
-  import { mostlyIn, stats, toDay, type CyclePhase, type Day } from '../lib/cycle';
+  import {
+    mostlyIn,
+    stats,
+    toDay,
+    toIso,
+    typicalLength,
+    unusualBy,
+    type CyclePhase,
+    type Day,
+  } from '../lib/cycle';
   import { days, formatDay } from '../lib/format';
   import { moods, symptoms } from '../lib/log';
   import { tracker } from '../lib/tracker.svelte';
@@ -10,6 +19,11 @@
   const longest = $derived(Math.max(35, ...cycles.map((c) => c.length)));
   const short = (d: number) => formatDay(d, { month: 'short', day: 'numeric' });
   const s = $derived(stats(a.history));
+  const typical = $derived(typicalLength(a.history));
+  const monthOf = (d: Day) => ({
+    href: `#calendar/${toIso(d).slice(0, 7)}`,
+    name: formatDay(d, { month: 'long' }),
+  });
 
   // the last cycles as columns, oldest first, scaled between a little under the
   // shortest and a little over the longest so differences show
@@ -225,6 +239,19 @@
             ></div>
           </div>
         </div>
+        {#if typical && c.length - typical >= unusualBy}
+          {@const m = monthOf(c.start + typical)}
+          <p class="text-xs text-amber-700 dark:text-amber-300">
+            Much longer than your usual {typical} days. If a period wasn't logged,
+            <a class="underline" href={m.href}>add it in {m.name}</a>.
+          </p>
+        {:else if typical && typical - c.length >= unusualBy}
+          {@const m = monthOf(c.start)}
+          <p class="text-xs text-amber-700 dark:text-amber-300">
+            Much shorter than your usual {typical} days. If spotting was logged as a period,
+            <a class="underline" href={m.href}>check {m.name}</a>.
+          </p>
+        {/if}
       </div>
     {/each}
   {:else}
