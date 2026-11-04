@@ -53,7 +53,10 @@ skip steps 2 and 3 and use Tailscale (see [deploy.md](deploy.md)).
 
 ## 4. Create your account and install it on your phone
 
-Open `https://flowy.<your-name>.synology.me` and create the owner account. Add
+Open `https://flowy.<your-name>.synology.me` and create the owner account. The
+setup screen asks for a one-time setup code: in Container Manager, open the
+**flowy** project's container, then **Log**, and copy the line "First-run setup
+code". Add
 other people from the admin page (`/_/`); each person only sees their own
 calendar. On the phone, sign in and choose **⋮ > Install app** in Chrome on
 Android or **Share > Add to Home Screen** in Safari on iPhone, then turn on
