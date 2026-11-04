@@ -47,6 +47,30 @@ small server). Install it on your phone from the browser.
 
 Predictions are estimates, not a form of birth control.
 
+## Your health data
+
+Cycle data is sensitive, so here is exactly where it goes.
+
+- **What is stored:** your day logs (flow, symptoms, moods, sex, pill, temperature, weight,
+  notes), your cycle settings and reminder choices. It lives in a SQLite database in
+  `pb_data` on your server, and a copy is kept on your phone so Flowy works offline.
+  Signing out removes it from the phone.
+- **Who can see it:** only you in the app. The owner of the install can open every record
+  in the admin UI (`/_/`), as with any server you run, so share an install only with
+  people who trust its owner.
+- **It is not encrypted on disk.** Anyone with access to the server or a copy of `pb_data`
+  can read it: keep the machine to yourself, encrypt backups that leave it, and wipe the
+  disk before you sell it ([Updates and backups](https://github.com/selfhostit/docs/blob/main/updates-and-backups.md)).
+- **The partner link** shows your phase, when your period is due and your fertile days (and
+  today's moods and symptoms only if you turn that on), never your history or notes.
+  Anyone with the link sees it, so renew or turn it off from Settings if it was shared too far.
+- **Reminders** go through your phone's push service (Apple, Google or Mozilla), encrypted so
+  the service can't read them. Discreet reminders only say "Reminder from Flowy".
+- **Nothing else leaves your server:** no analytics, no tracking, no selfhostit account.
+- **Taking it with you or deleting it:** export everything as CSV from Settings. Deleting a
+  person in the admin UI's `users` collection deletes their logs, partner links and
+  reminders with them; the nightly backups in `pb_data/backups` still hold them for up to 7 days.
+
 Flowy is built on [plasto](https://github.com/kalfasyan/plasto). To run it on a
 Synology NAS, follow [docs/synology.md](docs/synology.md).
 
@@ -156,6 +180,30 @@ Makefile            run `make` to see every command
 Pushes to `main` publish `ghcr.io/selfhostit/flowy` and
 `ghcr.io/selfhostit/flowy-worker` for amd64, arm64 and armv7; a `v*` tag
 publishes that version.
+
+## Security and maintenance
+
+- **Not on the internet:** the container listens on `127.0.0.1` only; reach it through
+  Tailscale or your own reverse proxy with HTTPS (`deploy/docker-compose.yml`).
+- **Locked-down container:** runs as a normal user, drops every Linux capability and
+  can't gain new ones.
+- **Nobody claims a new install before you:** the first account needs the one-time setup
+  code the install prints (`backend/app/setup.go`).
+- **Sign-ins are rate limited** (10 a minute, `backend/migrations/*_rate_limits.go`), and the
+  web app sends a Content Security Policy (`backend/app/headers.go`).
+- **Phone:** an optional PIN for the app, and "sign out on all devices" for a lost phone.
+- **Tested on every change:** Go and web tests (cycle math, reminders, partner links, setup, sign-out) and an end-to-end run of the published images
+  (`make smoke`) in [CI](.github/workflows/ci.yml); Actions are pinned to commit hashes and
+  Dependabot keeps Go, npm, Python, Docker and Actions dependencies current.
+- **Versioned releases:** installs update to a release, not to every change on `main`, and
+  every image has a signed attestation of the commit and workflow that built it
+  ([CHANGELOG.md](CHANGELOG.md), [docs/deploy.md](docs/deploy.md#check-where-an-image-came-from)).
+- **No analytics or tracking,** and no selfhostit account: the data stays in `pb_data` on your
+  machine, with a nightly backup kept there.
+
+Found a security problem? Please write to kalfasyan@pm.me rather than opening an issue
+([security policy](https://github.com/selfhostit/.github/blob/main/SECURITY.md)). [Security and privacy](https://github.com/selfhostit/docs/blob/main/security.md) covers every selfhostit app:
+what protects an install, what you are trusting and what is not done yet.
 
 ## Support
 
