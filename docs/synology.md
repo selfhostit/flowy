@@ -21,6 +21,13 @@ Flowy now runs on the NAS at port 8091, reachable only from the NAS itself, and
 shows up in Container Manager under Project, where you can see its logs. The
 database lives in `/volume1/docker/flowy/pb_data`, owned by your DSM user.
 
+Keep the `docker` folder private: it holds everyone's cycle data, and anyone who
+can open it over the network can copy it. In Control Panel > Shared Folder,
+select `docker` > **Edit**: on **Permissions**, give *administrators* Read/Write
+and every other user and group No access; on **General**, tick *Hide this shared
+folder in "My Network Places"*. Don't sync it with Synology Drive or Cloud Sync,
+and turn SSH off again when you're done.
+
 The image comes from `ghcr.io/selfhostit/flowy`. If the NAS can't pull it, make
 the package public at https://github.com/selfhostit/flowy/pkgs/container/flowy
 (Package settings > Change visibility).
@@ -78,4 +85,6 @@ going through GitHub.
 ## Backups
 
 Flowy keeps 7 nightly backups in `pb_data/backups`. To keep a copy off the NAS
-as well, add `/volume1/docker/flowy` to a **Hyper Backup** task.
+as well, add `/volume1/docker/flowy/pb_data` to a **Hyper Backup** task with
+**client-side encryption** turned on; leave out `tailscale`, which holds the
+machine's Tailscale key.
