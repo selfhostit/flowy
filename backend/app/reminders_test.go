@@ -8,6 +8,7 @@ import (
 
 	"github.com/selfhostit/flowy/cycle"
 	_ "github.com/selfhostit/flowy/migrations"
+	"github.com/selfhostit/flowy/push"
 )
 
 func TestReminders(t *testing.T) {
@@ -66,5 +67,27 @@ func TestReminderJobs(t *testing.T) {
 	}
 	if err := sendPillReminders(a, now); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestDiscreetReminders(t *testing.T) {
+	a, err := tests.NewTestAppWithConfig(core.BaseAppConfig{DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Cleanup()
+	users, _ := a.FindCollectionByNameOrId("users")
+	u := core.NewRecord(users)
+	msg := push.Message{Title: "Your period is coming", Body: "It's expected in 2 days.", URL: "/#today", Tag: "period"}
+	if got := discreetIf(u, msg); got != msg {
+		t.Errorf("off: got %+v, want it unchanged", got)
+	}
+	u.Set("discreet_reminders", true)
+	got := discreetIf(u, msg)
+	if got.Title != "Reminder from Flowy" || got.Body != "Open Flowy to see it." {
+		t.Errorf("on: got %q / %q", got.Title, got.Body)
+	}
+	if got.URL != msg.URL || got.Tag != msg.Tag {
+		t.Errorf("on: URL and tag should stay, got %+v", got)
 	}
 }

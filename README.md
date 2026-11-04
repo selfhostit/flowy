@@ -35,7 +35,8 @@ small server). Install it on your phone from the browser.
   quiz on how well they know your cycle. Optionally today's moods and symptoms.
   Renew or turn it off any time.
 - **Reminders:** a push notification two days before your period, when your
-  fertile window starts, and for your pill.
+  fertile window starts, and for your pill. Discreet reminders only say "Reminder
+  from Flowy", for a lock screen others can see.
 - **Works offline:** logs are saved on the phone and sent to the server when it
   is reachable again.
 - **Locked down on the phone:** an optional PIN for the app, sign-out removes your

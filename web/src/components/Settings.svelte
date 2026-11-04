@@ -201,8 +201,17 @@
       onchange={(e) => update({ remind_pill: e.currentTarget.checked })}
     />
   </label>
+  <label class="flex-row items-center justify-between font-normal">
+    Discreet: only show "Reminder from Flowy"
+    <input
+      type="checkbox"
+      checked={user.discreet_reminders}
+      onchange={(e) => update({ discreet_reminders: e.currentTarget.checked })}
+    />
+  </label>
   <p class="text-sm text-zinc-500">
-    Period and fertile reminders come at 9:00, on devices with notifications turned on.
+    Period and fertile reminders come at 9:00, on devices with notifications turned on. Reminders
+    can show on a locked phone; discreet ones don't say what they're about.
   </p>
 </section>
 

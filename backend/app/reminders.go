@@ -36,12 +36,12 @@ func sendPillReminders(app core.App, now cycle.Day) error {
 			return err
 		}
 		if len(taken) == 0 {
-			push.ToUser(app, u.Id, push.Message{
+			push.ToUser(app, u.Id, discreetIf(u, push.Message{
 				Title: "Time for your pill",
 				Body:  "Tap to log it once you've taken it.",
 				URL:   "/#today",
 				Tag:   "pill",
-			})
+			}))
 		}
 	}
 	return nil
@@ -62,10 +62,20 @@ func sendReminders(app core.App, now cycle.Day) error {
 			continue
 		}
 		for _, msg := range reminders(f, now, u.GetBool("remind_period"), u.GetBool("remind_fertile")) {
-			push.ToUser(app, u.Id, msg)
+			push.ToUser(app, u.Id, discreetIf(u, msg))
 		}
 	}
 	return nil
+}
+
+// discreetIf hides what a reminder is about when its person turned on discreet
+// reminders, since a notification can show on a locked phone that others see.
+func discreetIf(u *core.Record, msg push.Message) push.Message {
+	if u.GetBool("discreet_reminders") {
+		msg.Title = "Reminder from Flowy"
+		msg.Body = "Open Flowy to see it."
+	}
+	return msg
 }
 
 // loggedCycle is what the cycle math needs from someone's days up to now: the
