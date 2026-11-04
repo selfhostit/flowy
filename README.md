@@ -69,7 +69,7 @@ Cycle data is sensitive, so here is exactly where it goes.
 - **Nothing else leaves your server:** no analytics, no tracking, no selfhostit account.
 - **Taking it with you or deleting it:** export everything as CSV from Settings. Deleting a
   person in the admin UI's `users` collection deletes their logs, partner links and
-  reminders with them.
+  reminders with them; the nightly backups in `pb_data/backups` still hold them for up to 7 days.
 
 Flowy is built on [plasto](https://github.com/kalfasyan/plasto). To run it on a
 Synology NAS, follow [docs/synology.md](docs/synology.md).
