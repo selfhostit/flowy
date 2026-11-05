@@ -5,6 +5,8 @@ What changed in each release of Flowy. Installs update to the newest release; se
 
 ## Unreleased
 
+- Other people on the same server no longer see your cycle settings or which reminders
+  you have on; only your name and role.
 - golang.org/x/net 0.62.0, which fixes GO-2026-6860.
 - SECURITY.md: how to report a problem privately, and how quickly fixes ship.
 - Security scans on every pull request and every Monday: CodeQL, govulncheck, Grype
