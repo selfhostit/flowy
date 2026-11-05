@@ -20,6 +20,8 @@ on 8090. Replace `<your-name>` with your Synology DDNS name.
 Flowy now runs on the NAS at port 8091, reachable only from the NAS itself, and
 shows up in Container Manager under Project, where you can see its logs. The
 database lives in `/volume1/docker/flowy/pb_data`, owned by your DSM user.
+If another app already has port 8091, the installer takes the next free one and says
+so; use that port wherever this guide says 8091.
 
 Keep the `docker` folder private: it holds everyone's cycle data, and anyone who
 can open it over the network can copy it. In Control Panel > Shared Folder,
