@@ -186,7 +186,7 @@ publishes that version.
 - **Not on the internet:** the container listens on `127.0.0.1` only; reach it through
   Tailscale or your own reverse proxy with HTTPS (`deploy/docker-compose.yml`).
 - **Locked-down container:** runs as a normal user, drops every Linux capability and
-  can't gain new ones.
+  can't gain new ones; its filesystem is read-only apart from its data.
 - **Nobody claims a new install before you:** the first account needs the one-time setup
   code the install prints (`backend/app/setup.go`).
 - **Sign-ins are rate limited** (10 a minute, `backend/migrations/*_rate_limits.go`), and the
@@ -195,14 +195,18 @@ publishes that version.
 - **Tested on every change:** Go and web tests (cycle math, reminders, partner links, setup, sign-out) and an end-to-end run of the published images
   (`make smoke`) in [CI](.github/workflows/ci.yml); Actions are pinned to commit hashes and
   Dependabot keeps Go, npm, Python, Docker and Actions dependencies current.
+- **Security scans** on every pull request and every week: CodeQL, govulncheck on the
+  Go code, Grype on the other dependencies and the released images, dependency review and
+  gitleaks
+  ([security.yml](.github/workflows/security.yml)).
 - **Versioned releases:** installs update to a release, not to every change on `main`, and
   every image has a signed attestation of the commit and workflow that built it
   ([CHANGELOG.md](CHANGELOG.md), [docs/deploy.md](docs/deploy.md#check-where-an-image-came-from)).
 - **No analytics or tracking,** and no selfhostit account: the data stays in `pb_data` on your
   machine, with a nightly backup kept there.
 
-Found a security problem? Please write to kalfasyan@pm.me rather than opening an issue
-([security policy](https://github.com/selfhostit/.github/blob/main/SECURITY.md)). [Security and privacy](https://github.com/selfhostit/docs/blob/main/security.md) covers every selfhostit app:
+Found a security problem? Please report it privately, not in an issue: see [SECURITY.md](SECURITY.md)
+for how, and how quickly it gets fixed. [Security and privacy](https://github.com/selfhostit/docs/blob/main/security.md) covers every selfhostit app:
 what protects an install, what you are trusting and what is not done yet.
 
 ## Support
