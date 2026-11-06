@@ -68,7 +68,8 @@ Flowy installs from the browser; there is no app store app.
 1. Install the **Tailscale** app and sign in. With Tailscale switched on, the
    tailnet address works from anywhere with internet, not only at home.
 2. Open `https://flowy.<your-tailnet>.ts.net` (or your reverse proxy address) and
-   create an account. The first one becomes the owner.
+   create an account. The first one becomes the owner. Type the `https://`: the app
+   answers only there, and plain `http://` is sent on to it.
 3. Install it: **⋮ > Install app** in Chrome on Android, or **Share > Add to Home
    Screen** in Safari on iPhone. Then turn on reminders in Settings.
 
