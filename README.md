@@ -6,6 +6,8 @@
 
 **A private period and cycle tracker that runs on your own server.**
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/selfhostit/flowy/badge)](https://scorecard.dev/viewer/?uri=github.com/selfhostit/flowy)
+
 <img src="docs/images/today.png" width="230" alt="The today screen: days until the next period, cycle day and chance of pregnancy">&nbsp;
 <img src="docs/images/calendar.png" width="230" alt="The calendar with logged and predicted periods, the fertile window and ovulation">&nbsp;
 <img src="docs/images/today-dark.png" width="230" alt="The today screen in dark mode">
