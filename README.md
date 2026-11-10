@@ -49,6 +49,26 @@ small server). Install it on your phone from the browser.
 
 Predictions are estimates, not a form of birth control.
 
+## Install
+
+On a NAS, a Raspberry Pi or any Linux machine with a terminal (or SSH):
+
+```sh
+curl -fsSL https://github.com/selfhostit/docs/releases/latest/download/install.sh | sh -s -- flowy
+```
+
+This is the installer for every selfhostit app, set to install only Flowy. It sets up Docker
+if it is missing, installs a pinned release of Flowy and checks every file against its
+SHA-256, and can give Flowy an `https://` address with Tailscale, so it opens on your phones
+at home and away. When it is done, open the address it lists, type the setup code and make
+your account. Flowy needs no other selfhostit app.
+
+Step by step for a [Pi or Linux](https://github.com/selfhostit/docs/blob/main/linux.md),
+a [Synology](https://github.com/selfhostit/docs/blob/main/synology.md) or
+[another NAS](https://github.com/selfhostit/docs/blob/main/other-nas.md), and
+[after you install](https://github.com/selfhostit/docs/blob/main/first-steps.md): adding your
+household, putting Flowy on your phones, and what to try when it doesn't open.
+
 ## Your health data
 
 Cycle data is sensitive, so here is exactly where it goes.
@@ -73,12 +93,12 @@ Cycle data is sensitive, so here is exactly where it goes.
   person in the admin UI's `users` collection deletes their logs, partner links and
   reminders with them; the nightly backups in `pb_data/backups` still hold them for up to 7 days.
 
-Flowy is built on [plasto](https://github.com/kalfasyan/plasto). To run it on a
+Flowy is built on [plasto](https://github.com/selfhostit/plasto). To run it on a
 Synology NAS, follow [docs/synology.md](docs/synology.md).
 
-## Quick start
+## Develop
 
-You need [Go](https://go.dev/dl/) 1.27+, [Node](https://nodejs.org) 22+ and
+To work on Flowy itself, you need [Go](https://go.dev/dl/) 1.27+, [Node](https://nodejs.org) 22+ and
 [uv](https://docs.astral.sh/uv/) (for the Python workers).
 
 ```sh
@@ -135,9 +155,12 @@ Everything a person sees is the web app, served by the Go app. Heavy work runs i
 Python workers, here or on another machine, which write records; Go hooks react to
 those records and notify people.
 
-## Deploy
+## Deploy on its own
 
-On any Linux machine with Docker (a NAS, a Raspberry Pi, a server):
+Flowy's own installer is an alternative to [the one above](#install): it gives Flowy its own
+Tailscale machine, `https://flowy.<your-tailnet>.ts.net`, signed in with an auth key. It runs
+from `main` and takes the newest release, without the SHA-256 checks of the shared installer.
+On any Linux machine with Docker:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/selfhostit/flowy/main/deploy/install.sh | sh
