@@ -6,8 +6,10 @@
   import Calendar from './Calendar.svelte';
   import DayLogSheet from './DayLogSheet.svelte';
   import Insights from './Insights.svelte';
+  import People from './People.svelte';
   import Settings from './Settings.svelte';
   import Today from './Today.svelte';
+  import { session } from '../lib/session.svelte';
 
   // The signed-in app: four tabs, each with its own #address so Back works.
   const tabs = [
@@ -34,6 +36,8 @@
     tabs.find((t) => location.hash === `#${t.id}` || location.hash.startsWith(`#${t.id}/`))?.id ??
     'today';
   let tab = $state<Tab>(fromHash());
+  // a screen inside a tab, like #settings/people
+  let route = $state(location.hash);
   let logging = $state<string | null>(null);
   const log = (date: string) => (logging = date);
 
@@ -55,6 +59,7 @@
     logFromHash();
     const onHash = () => {
       tab = fromHash();
+      route = location.hash;
       logFromHash();
     };
     addEventListener('hashchange', onHash);
@@ -91,6 +96,8 @@
       <Calendar onlog={log} />
     {:else if tab === 'insights'}
       <Insights />
+    {:else if route === '#settings/people' && session.isOwner}
+      <People />
     {:else}
       <Settings />
     {/if}
