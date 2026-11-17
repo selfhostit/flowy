@@ -10,6 +10,7 @@
   import { errorMessage, pb, type User } from '../lib/pb';
   import { session } from '../lib/session.svelte';
   import { tracker } from '../lib/tracker.svelte';
+  import ChangePassword from './ChangePassword.svelte';
   import Notifications from './Notifications.svelte';
   import PartnerShare from './PartnerShare.svelte';
 
@@ -356,6 +357,12 @@
       >{loseUnsent && tracker.unsynced ? 'Sign out anyway' : 'Sign out'}</button
     >
   </div>
+  <div class="flex flex-wrap gap-2">
+    {#if session.isOwner}
+      <a class="btn-secondary px-3 py-2 text-sm" href="#settings/people">People</a>
+    {/if}
+    <ChangePassword />
+  </div>
   {#if tracker.unsynced}
     <p class="text-amber-700 dark:text-amber-300" role={loseUnsent ? 'alert' : undefined}>
       {tracker.unsynced} logged {tracker.unsynced === 1 ? 'day is' : 'days are'} only on this phone so
@@ -388,10 +395,9 @@
   {#if signOutError}<p class="text-red-600 dark:text-red-400" role="alert">{signOutError}</p>{/if}
   {#if session.isOwner}
     <p class="text-zinc-600 dark:text-zinc-400">
-      Add people and manage data in the <a
-        class="text-brand-600 underline dark:text-brand-400"
-        href="/_/">admin page</a
-      >. In the app, each person only sees their own calendar.
+      Add people and give them a new password in <b>People</b>. Manage data in the
+      <a class="text-brand-600 underline dark:text-brand-400" href="/_/">admin page</a>. In the app,
+      each person only sees their own calendar.
     </p>
   {/if}
 </section>
