@@ -6,7 +6,11 @@
 
 **A private period and cycle tracker that runs on your own server.**
 
+[![CI](https://github.com/selfhostit/flowy/actions/workflows/ci.yml/badge.svg)](https://github.com/selfhostit/flowy/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/selfhostit/flowy)](https://github.com/selfhostit/flowy/releases/latest)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/selfhostit/flowy/badge)](https://scorecard.dev/viewer/?uri=github.com/selfhostit/flowy)
+[![License: MIT](https://img.shields.io/github/license/selfhostit/flowy)](LICENSE)
+[![Image](https://img.shields.io/badge/image-ghcr.io%2Fselfhostit%2Fflowy-2496ED?logo=docker&logoColor=white)](https://github.com/orgs/selfhostit/packages/container/package/flowy)
 
 <img src="docs/images/today.png" width="230" alt="The today screen: days until the next period, cycle day and chance of pregnancy">&nbsp;
 <img src="docs/images/calendar.png" width="230" alt="The calendar with logged and predicted periods, the fertile window and ovulation">&nbsp;
